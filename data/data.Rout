@@ -1,0 +1,30 @@
+
+R version 3.1.2 (2014-10-31) -- "Pumpkin Helmet"
+Copyright (C) 2014 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R é um software livre e vem sem GARANTIA ALGUMA.
+Você pode redistribuí-lo sob certas circunstâncias.
+Digite 'license()' ou 'licence()' para detalhes de distribuição.
+
+R é um projeto colaborativo com muitos contribuidores.
+Digite 'contributors()' para obter mais informações e
+'citation()' para saber como citar o R ou pacotes do R em publicações.
+
+Digite 'demo()' para demonstrações, 'help()' para o sistema on-line de ajuda,
+ou 'help.start()' para abrir o sistema de ajuda em HTML no seu navegador.
+Digite 'q()' para sair do R.
+
+> d=read.csv("data", sep="\t")
+> jpeg("data-log.jpg")
+> plot(d,main="Dealer Histogram for 'stands on 17' strategy",log="y")
+Mensagens de aviso perdidas:
+In xy.coords(x, y, xlabel, ylabel, log) :
+  16 y values <= 0 omitted from logarithmic plot
+> dev.off()
+null device 
+          1 
+> 
+> proc.time()
+  usuário   sistema decorrido 
+    0.124     0.008     0.130 

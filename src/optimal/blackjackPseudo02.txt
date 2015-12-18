@@ -1,0 +1,119 @@
+
+contFinalD[1 .. 22]
+dealer(int i : quanto ele tem, bool as : se ele tem pelo menos um as ) :
+	
+	// Stand 
+	if ( i > 21 && !as || i > 20 && as ) contFinalD[22]++
+	elif (as && i >= 6 && i <= 10) contFinalD[i + 11]++
+	elif (as && i >= 16 && i <= 20) conFinalD[i + 1]++
+	elif (!as && i >= 17) contFinalD[i]++
+	
+	// Hit
+	else for c : cartas
+		if c == ACE
+			if as : dealer(i + 1, true)
+			else : dealer(i, true)
+		else
+			dealer(i + c, as)
+
+
+contFinalE[1 .. 22]
+jogadorEstrategico(
+	int i : quanto ele tem, 
+	j : quanto dealer tem, 
+	bool as : se ele tem pelo menos um as, 
+	acao EHard[upcard dealer][soma propria] : estrategia sem as, 
+	acao ESoft[upcard dealer][soma propria] : estrategia com as
+)
+	// Stand
+	if ( i > 21 && !as || i > 20 && as ) contFinalE[22]++
+	elif ( as && ESoft[j][i] == STAND ) contFinalE[i]++
+	elif ( !as && EHard[j][i] == STAND ) contFinalE[i]++
+
+	// Hit
+	else for c : cartas
+		if c == ACE
+			if as : jogadorEstrategico(i + 1, j, true, EHard, ESoft)
+			else : jogadorEstrategico(i, j, true, EHard, ESoft)
+		else : jogadorEstrategico(i + c, j, as, EHard, ESoft)		
+			
+			
+
+contFinalO[1 .. 22]
+
+acao OHard[upcard dealer][soma propria] : estrategia sem as, 
+float oHardReward[soma propria] : Recompensa esperada sem as
+acao OSoft[upcard dealer][soma propria] : estrategia com as
+float oSoftReward[soma propria] : Recompensa esperada com as
+jogadorOtimo(
+	int i : quanto ele tem, 
+	int j : carta do dealer,
+	bool as : se ele tem pelo menos um as
+)
+	// Bust
+	if ( i > 21 && !as || i > 20 && as ) return 0
+
+	// If already computed
+	if (!as && OHard[j][i] != UNDEFINED) return oHardReward[i]
+	elif (as && OSoft[j][i] != UNDEFINED) return oSoftReward[i]
+	
+	// Stand
+	sumD = sum(contFinalD[0 .. 22])
+	if (as && i <= 10) expectedStand = (sum(contFinalD[0 .. i+10 ]) + contFinalD[i+11]/2) / sumD
+	elif (as && i > 10) expectedStand = (sum(contFinalD[0 .. i ]) + contFinalD[i+1]/2) / sumD
+	else expectedStand = (sum(contFinalD[0 .. i - 1 ]) + contFinalD[i]/2) / sumD
+	
+	// Hit
+	for c : cartas
+		if c == ACE
+			if as : expectedHit += p(c) * jogadorOtimo(i + 1, true)
+			else : expectedHit += p(c) * jogadorOtimo(i, true) 
+		else : expectedHit += p(c) * jogadorOtimo(i + c, as)
+	
+	// Make SPE choice
+	if (expectedStand > expectedHit) 
+		action = STAND
+		reward = expectedStand
+	else
+		action = Hit
+		reward = expectedHit
+
+	// Memorize results and return
+	if (as) 
+		OSoft[j][i] = action
+		oRewardSoft[j][i] = reward
+	else 
+		OHard[j][i] = action
+		oRewardHard[j][i] = reward
+	return reward
+
+computaEstrategiaOtima() :
+
+	# Computa as estratégias para cada carta possível do dealer]
+	for c : cartas
+		if ( c == ACE ) : dealer(0, true)
+		else : dealer(c, false)
+		jogadorOtimo(0, c, false)			
+	
+computaRecompensaEsperada(EHist : hisograma da estrategia, DHist : histograma do dealer) :	
+	sumE = sum(EHist[1 .. 22])
+	sumD = sum(DHist[1 .. 22])
+	expReward = 0
+	for i in 1 .. 22 
+		expReward += sumE[i]/sumE * sum(sumD[1 .. i - 1], sumD[i]/2)/sumD
+	return expReward	
+
+computaRecompensaEsperada(
+	acao EstrategiaH[upcard dealer][soma propria],
+	acao EstrategiaS[upcard dealer][soma propria]
+)
+	# Computa a estrategia para cada carta que o dealer pode receber
+	expReward = 0
+	for c : cartas
+		if c == ACE : dealer(0, true)
+		else : dealer(c, false)
+		jogadorEstrategico(0, c, false, EstrategiaH, EstrategiaS)
+		expReward += p(c) * computaRecompensaEsperada(contFinalE, contFinalD)
+	return expReward
+
+			
